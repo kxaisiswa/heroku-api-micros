@@ -6,7 +6,7 @@ app.use(cors());
 
 const mysql = require('mysql');
 
-var con = mysql.createConnection({
+var con = mysql.createPool({
   host: "us-cdbr-east-04.cleardb.com",
   user: "bc595431952f6c",
   password: "729573a2",
@@ -14,12 +14,18 @@ var con = mysql.createConnection({
 });
 
 app.get('/', (req, res) => {
-  con.connect(function (err) {
-    if (err) throw err;
-    con.query("SELECT * FROM person", function (err, result, fields) {
-      if (err) throw err;
-      res.send(result);
-    });
+  con.getConnection(function (err, tempconnection) {
+    if (err) { res.send("Error occured!"); }
+    else {
+      var sql = "SELECT * FROM person";
+      con.query(sql, function (err, result, fields) {
+        if (err) { throw err; }
+        else {
+          res.send(result);
+        }
+      tempconnection.release();
+      });
+    }
   });
 });
 
