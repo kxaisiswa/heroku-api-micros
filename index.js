@@ -1,10 +1,13 @@
 const express = require('express');
+const cors = require('cors');
+const mysql = require('mysql');
+var path = require('path');
+
 const app = express();
 
-const cors = require('cors');
 app.use(cors());
-
-const mysql = require('mysql');
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 
 var con = mysql.createPool({
   host: "us-cdbr-east-04.cleardb.com",
@@ -22,6 +25,29 @@ app.get('/', (req, res) => {
         if (err) { throw err; }
         else {
           res.send(result);
+        }
+      tempconnection.release();
+      });
+    }
+  });
+});
+
+app.post('/input', (req, res) => {
+  var idnum = req.body.idnum;
+  var password = req.body.password;
+  var name = req.body.name;
+  var email = req.body.email;
+  var age = req.body.age;
+
+  con.getConnection(function (err, tempconnection) {
+    if (err) { res.send("Error occured!"); }
+    else {
+      var sql = "INSERT INTO student (stud_idnum, stud_password, stud_name, stud_email, stud_age) VALUES ('"+idnum+"', '"+password+"', '"+name+"', '"+email+"', '"+age+"')";
+      con.query(sql, function (err, result) {
+        if (err) { throw err; }
+        else {
+          console.log("Successfully Inserted");
+          res.sendFile(path.join(__dirname + '/index.html'));
         }
       tempconnection.release();
       });
